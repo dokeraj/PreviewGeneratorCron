@@ -7,5 +7,10 @@ if __name__ == '__main__':
     # docker exec nextcloud occ preview:pre-generate
     call(["docker", "exec nextcloud occ preview:generate-all"])
 
+    import time
+
+    print("Printed immediately.")
+    time.sleep(256.4)
+
 #
 # docker exec nextcloud occ preview:generate-all
