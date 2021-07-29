@@ -6,6 +6,7 @@ RUN pip install pyyaml
 RUN mkdir /yaml
 RUN mkdir /entry
 
+ADD util.py /entry/
 ADD configInit.py /entry/
 ADD main.py /entry/
 
