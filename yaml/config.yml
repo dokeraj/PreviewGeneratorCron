@@ -1,6 +1,8 @@
 general_settings:
   ## MANDATORY. Name of your nextcloud docker container. It most probably should be: nextcloud
   nextcloud_container_name: <INSERT YOUR NEXTCLOUD CONTAINER NAME HERE>
+  ## OPTIONAL. Defaults to true if deleted. If true is selected then the command "occ preview:generate-all" will be used. If set to false, then "occ preview:pre-generate" will be used
+  generate_all: <true or false>
 
 ## DELETE THE ONE YOU DON'T NEED. This is the schedule when you want the script to run and make backup / update
 backup_schedule:

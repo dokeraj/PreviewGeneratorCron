@@ -1,30 +1,79 @@
-import docker
-import schedule
-import time
-import configInit
 import calendar
+import time
 from datetime import datetime
-import sys
+import schedule
+import containerChecks
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def generatePreviews(container, config):
+    cmdToRun = "occ preview:generate-all"
+    if not config.generateAll:
+        cmdToRun = "occ preview:pre-generate"
+
+    print("Now running the differential image preview generation!! This may take a while..")
+    container.exec_run(cmd=cmdToRun)
+    print(f"FINISHED: with the generating of the previews. See you at the next scheduled time. ;)")
+
+
+def mainLastDayOfMonth():
+    # check to see if it is in fact the last day of the month - and if so, then allow the schedule to take place
+    today = datetime.today()
+    curDay = today.day
+    daysInCurMonth = calendar.monthrange(today.year, today.month)[1]
+
+    if (daysInCurMonth - 7) < curDay:
+        startMainProcess()
+
+
+def handleScheduling(config):
+    if config.dailySchedule is not None:
+        schedule.every().day.at(config.dailySchedule.time).do(startMainProcess)
+    if config.weeklySchedule is not None:
+        if config.weeklySchedule.day == "MON":
+            schedule.every().monday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "TUE":
+            schedule.every().tuesday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "WED":
+            schedule.every().wednesday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "THU":
+            schedule.every().thursday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "FRI":
+            schedule.every().friday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "SAT":
+            schedule.every().saturday.at(config.weeklySchedule.time).do(startMainProcess)
+        if config.weeklySchedule.day == "SUN":
+            schedule.every().sunday.at(config.weeklySchedule.time).do(startMainProcess)
+    if config.lastDayOfMonthSchedule is not None:
+        if config.lastDayOfMonthSchedule.day == "MON":
+            schedule.every().monday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "TUE":
+            schedule.every().tuesday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "WED":
+            schedule.every().wednesday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "THU":
+            schedule.every().thursday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "FRI":
+            schedule.every().friday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "SAT":
+            schedule.every().saturday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+        if config.lastDayOfMonthSchedule.day == "SUN":
+            schedule.every().sunday.at(config.lastDayOfMonthSchedule.time).do(mainLastDayOfMonth)
+
+
+def startMainProcess():
+    print("\n\nCOMMENCING THE SCHEDULED TASK TO GENERATE PREVIEWS..\n")
+    container, config = containerChecks.mainChecks()
+    generatePreviews(container, config)
+
+
+def main():
     print("STARTING SCRIPT!")
+    container, config = containerChecks.mainChecks()
 
-    # docker exec nextcloud occ preview:pre-generate
-
-    try:
-        client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    except Exception as e:
-        print("ERROR: cannot find docker server! now exiting!")
-        sys.exit(0)
-
-    config = configInit.initConfig()
-
-    ## todo:: if you cannot get the container name - wait 1 minute and try again -> up to 5 times
-    container = client.containers.get(config.nextcloudContainerName)
-    container.exec_run(cmd="occ preview:generate-all")
+    handleScheduling(config)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
-
-
+main()

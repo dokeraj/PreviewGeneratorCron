@@ -1,9 +1,9 @@
 import yaml
 from dataclasses import dataclass
 import sys
-import os
 from os import path
 import util
+
 
 @dataclass
 class ConfSchedule:
@@ -14,12 +14,13 @@ class ConfSchedule:
 @dataclass
 class Config:
     nextcloudContainerName: str
+    generateAll: bool
     weeklySchedule: ConfSchedule
     dailySchedule: ConfSchedule
     lastDayOfMonthSchedule: ConfSchedule
 
 
-conf = Config(None, None, None, None)
+conf = Config(None, True, None, None, None)
 
 
 def checkMandatoryFields():
@@ -32,7 +33,8 @@ def checkMandatoryFields():
     if conf.weeklySchedule is not None and (conf.weeklySchedule.time is None or conf.weeklySchedule.day is None):
         print("ERROR: Weekly Schedule must have TIME and DAY setup! Now exiting!")
         sys.exit(0)
-    if conf.lastDayOfMonthSchedule is not None and (conf.lastDayOfMonthSchedule.time is None or conf.lastDayOfMonthSchedule.day is None):
+    if conf.lastDayOfMonthSchedule is not None and (
+            conf.lastDayOfMonthSchedule.time is None or conf.lastDayOfMonthSchedule.day is None):
         print("ERROR: Last Day Of Month Schedule must have TIME and DAY setup! Now exiting!")
         sys.exit(0)
     if conf.dailySchedule is not None and conf.dailySchedule.time is None:
@@ -43,6 +45,7 @@ def checkMandatoryFields():
 def printSetConfig():
     resultStr = "The following config params were set:\n"
     resultStr += f"- nextcloud_container_name = {conf.nextcloudContainerName}\n"
+    resultStr += f"- generate_all = {conf.generateAll}\n"
 
     resultStr += f"Backup Schedule:\n"
     if conf.weeklySchedule is not None:
@@ -68,7 +71,9 @@ def initConfig():
                         if k == "general_settings" and v is not None:
                             for generalKey, generalVal in v.items():
                                 if generalKey == "nextcloud_container_name" and generalVal != "<INSERT YOUR NEXTCLOUD CONTAINER NAME HERE>":
-                                    conf.watchtowerImage = generalVal
+                                    conf.nextcloudContainerName = generalVal
+                                if generalKey == "generate_all" and generalVal != "<True or False>":
+                                    conf.generateAll = util.safeCastBool(generalVal, True)
 
                         # Backup Schedule
                         if k == "backup_schedule" and v is not None:
@@ -80,13 +85,15 @@ def initConfig():
                                             if weeklyVal in ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]:
                                                 weeklySchedule.day = weeklyVal
                                             else:
-                                                print("ERROR: Weekly schedule's day is not set properly - Please use MON, TUE, WED, THU, FRI, SAT or SUN to specify the day. Now exiting!")
+                                                print(
+                                                    "ERROR: Weekly schedule's day is not set properly - Please use MON, TUE, WED, THU, FRI, SAT or SUN to specify the day. Now exiting!")
                                                 sys.exit(0)
                                         if weeklyKey == "time":
                                             if util.isTimeFormat(weeklyVal):
                                                 weeklySchedule.time = weeklyVal
                                             else:
-                                                print("ERROR: Weekly time format is not valid! Please use HH:mm format! Now exiting!")
+                                                print(
+                                                    "ERROR: Weekly time format is not valid! Please use HH:mm format! Now exiting!")
                                                 sys.exit(0)
 
                                     conf.weeklySchedule = weeklySchedule
@@ -98,7 +105,8 @@ def initConfig():
                                             if util.isTimeFormat(dailyVal):
                                                 dailySchedule.time = dailyVal
                                             else:
-                                                print("ERROR: Daily time format is not valid! Please use HH:mm format! Now exiting!")
+                                                print(
+                                                    "ERROR: Daily time format is not valid! Please use HH:mm format! Now exiting!")
                                                 sys.exit(0)
 
                                     conf.dailySchedule = dailySchedule
@@ -117,7 +125,8 @@ def initConfig():
                                             if util.isTimeFormat(lastDayVal):
                                                 lastDaySchedule.time = lastDayVal
                                             else:
-                                                print("ERROR: Last Day Of Month time format is not valid! Please use HH:mm format! Now exiting!")
+                                                print(
+                                                    "ERROR: Last Day Of Month time format is not valid! Please use HH:mm format! Now exiting!")
                                                 sys.exit(0)
 
                                     conf.lastDayOfMonthSchedule = lastDaySchedule
