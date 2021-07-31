@@ -10,7 +10,7 @@ def generatePreviews(container, config):
     if not config.generateAll:
         cmdToRun = "occ preview:pre-generate"
 
-    print("Now running the differential image preview generation!! This may take a while..")
+    print(f"Now running the command `{cmdToRun}` in the nextcloud container for image preview generation!! This may take a while..")
     container.exec_run(cmd=cmdToRun)
     print(f"FINISHED: with the generating of the previews. See you at the next scheduled time. ;)")
 
