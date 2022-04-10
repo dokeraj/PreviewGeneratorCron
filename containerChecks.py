@@ -14,7 +14,10 @@ def checkNextcloudValidity(container):
 def checkNextcloudAvailability(dockerClient, config):
     try:
         container = dockerClient.containers.get(config.nextcloudContainerName)
-        return True, container
+        if str(container.status).lower() == "running":
+            return True, container
+        else:
+            return False, None
     except Exception as e:
         return False, None
 
